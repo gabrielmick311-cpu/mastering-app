@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Maestro Mastering</title>
+</head>
+<body style="font-family: Arial; text-align:center; padding:40px;">
+
+  <h1>🎧 Maestro Mastering</h1>
+
+  <p>Upload your track and get it mastered instantly</p>
+
+  <input type="file" id="file" />
+  <br><br>
+
+  <button onclick="upload()">Master Track</button>
+
+  <p id="status"></p>
+
+  <script>
+    async function upload() {
+      const file = document.getElementById("file").files[0];
+      const status = document.getElementById("status");
+
+      if (!file) {
+        status.innerText = "Pick a file first";
+        return;
+      }
+
+      status.innerText = "Processing...";
+
+      const form = new FormData();
+      form.append("track", file);
+
+      const res = await fetch("/master", {
+        method: "POST",
+        body: form
+      });
+
+      if (!res.ok) {
+        status.innerText = "Error processing file";
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "mastered.wav";
+      a.click();
+
+      status.innerText = "Done ✔ Download started";
+    }
+  </script>
+
+</body>
+</html>
