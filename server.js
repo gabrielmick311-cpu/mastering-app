@@ -7,14 +7,15 @@ const fs = require("fs");
 const app = express();
 app.use(cors());
 
-// Make sure folders exist
 if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
 if (!fs.existsSync("output")) fs.mkdirSync("output");
 
-// Upload setup
+app.get("/", (req, res) => {
+    res.send("🎧 Mastering API is live");
+});
+
 const upload = multer({ dest: "uploads/" });
 
-// MASTERING ENDPOINT
 app.post("/master", upload.single("track"), (req, res) => {
     const inputPath = req.file.path;
     const outputPath = `output/${Date.now()}_mastered.wav`;
@@ -35,16 +36,12 @@ app.post("/master", upload.single("track"), (req, res) => {
             });
         })
         .on("error", (err) => {
-            console.log("FFmpeg error:", err);
+            console.log(err);
             res.status(500).send("Mastering failed");
         })
         .save(outputPath);
 });
 
-// START SERVER
-app.listen(3000, () => {
-    console.log("Server running on http://localhost:3000");
+app.listen(process.env.PORT || 3000, () => {
+    console.log("Server running");
 });
-
-
-
