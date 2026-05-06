@@ -24,11 +24,13 @@ app.post("/master", upload.single("track"), (req, res) => {
     const outputPath = `output/${Date.now()}_mastered.wav`;
 
     ffmpeg(inputPath)
-        .audioFilters([
-            "highpass=f=30",
-            "lowpass=f=18000",
-            "acompressor=threshold=-18dB:ratio=3:attack=5:release=50",
-            "loudnorm"
+.audioFilters([
+    "highpass=f=35",
+    "lowpass=f=17000",
+    "acompressor=threshold=-20dB:ratio=3:attack=10:release=80",
+    "equalizer=f=1000:t=q:w=1:g=2",
+    "loudnorm=I=-14:TP=-1.5:LRA=11"
+])
         ])
         .audioCodec("pcm_s16le")
         .format("wav")
