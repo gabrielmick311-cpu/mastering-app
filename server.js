@@ -12,10 +12,11 @@ const PORT = process.env.PORT || 3000;
 if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
 if (!fs.existsSync("output")) fs.mkdirSync("output");
 
-app.get("/", (req, res) => {
-    res.send("🎧 Mastering API is live");
-});
+const path = require("path");
 
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
+});
 const upload = multer({ dest: "uploads/" });
 
 app.post("/master", upload.single("track"), (req, res) => {
