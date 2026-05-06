@@ -1,3 +1,23 @@
+const express = require("express");
+const multer = require("multer");
+const ffmpeg = require("fluent-ffmpeg");
+const cors = require("cors");
+const fs = require("fs");
+
+const app = express();
+app.use(cors());
+
+const PORT = process.env.PORT || 3000;
+
+if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
+if (!fs.existsSync("output")) fs.mkdirSync("output");
+
+app.get("/", (req, res) => {
+    res.send("🎧 Mastering API is live");
+});
+
+const upload = multer({ dest: "uploads/" });
+
 app.post("/master", upload.single("track"), (req, res) => {
     const inputPath = req.file.path;
     const outputPath = `output/${Date.now()}_mastered.wav`;
@@ -22,4 +42,8 @@ app.post("/master", upload.single("track"), (req, res) => {
             res.status(500).send("Mastering failed");
         })
         .save(outputPath);
+});
+
+app.listen(PORT, () => {
+    console.log("Server running on port " + PORT);
 });
