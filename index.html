@@ -2,19 +2,53 @@
 <html>
 <head>
   <title>Maestro Mastering</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f0f0f;
+      color: white;
+      text-align: center;
+      padding: 60px;
+    }
+
+    .box {
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 15px;
+      width: 350px;
+      margin: auto;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #4c6fff;
+      color: white;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    input {
+      margin-top: 15px;
+    }
+  </style>
 </head>
-<body style="font-family: Arial; text-align:center; padding:40px;">
+
+<body>
 
   <h1>🎧 Maestro Mastering</h1>
 
-  <p>Upload your track and get it mastered instantly</p>
+  <div class="box">
+    <p>Upload your track</p>
 
-  <input type="file" id="file" />
-  <br><br>
+    <input type="file" id="file" />
+    <br>
 
-  <button onclick="upload()">Master Track</button>
+    <button onclick="upload()">Master Track</button>
 
-  <p id="status"></p>
+    <p id="status"></p>
+  </div>
 
   <script>
     async function upload() {
@@ -22,7 +56,7 @@
       const status = document.getElementById("status");
 
       if (!file) {
-        status.innerText = "Pick a file first";
+        status.innerText = "Select a file first";
         return;
       }
 
@@ -36,11 +70,6 @@
         body: form
       });
 
-      if (!res.ok) {
-        status.innerText = "Error processing file";
-        return;
-      }
-
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
 
@@ -49,7 +78,7 @@
       a.download = "mastered.wav";
       a.click();
 
-      status.innerText = "Done ✔ Download started";
+      status.innerText = "Done ✔ Downloaded";
     }
   </script>
 
