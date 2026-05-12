@@ -7,6 +7,7 @@ const path = require("path");
 
 const app = express();
 app.use(cors());
+const clients = {};
 
 // folders
 if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
@@ -19,7 +20,19 @@ app.get("/", (req, res) => {
 
 // file upload config
 const upload = multer({ dest: "uploads/" });
+app.get("/progress/:id", (req, res) => {
+    const id = req.params.id;
 
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    clients[id] = res;
+
+    req.on("close", () => {
+        delete clients[id];
+    });
+});
 // MASTER ROUTE
 app.post("/master", upload.single("track"), (req, res) => {
     if (!req.file) {
