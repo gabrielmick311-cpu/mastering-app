@@ -8,24 +8,32 @@ const path = require("path");
 const app = express();
 app.use(cors());
 
+// folders
 if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
 if (!fs.existsSync("output")) fs.mkdirSync("output");
 
+// serve frontend (if you keep index.html in same folder)
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
 });
 
+// file upload config
 const upload = multer({ dest: "uploads/" });
+
+// MASTER ROUTE
 app.post("/master", upload.single("track"), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send("No file uploaded");
+    }
+
     const inputPath = req.file.path;
     const outputPath = `output/${Date.now()}_mastered.wav`;
 
     ffmpeg(inputPath)
         .audioFilters([
-            "highpass=f=30",
-            "lowpass=f=18000",
-            "acompressor=threshold=-18dB:ratio=3:attack=5",
-            "loudnorm"
+            "stereotools=mlev=1:slev=1.35",
+            "alimiter=limit=0.99",
+            "volume=5dB"
         ])
         .audioCodec("pcm_s16le")
         .format("wav")
@@ -36,47 +44,15 @@ app.post("/master", upload.single("track"), (req, res) => {
             });
         })
         .on("error", (err) => {
-            console.log(err);
-            res.status(500).send("Mastering failed");
-        })
-        .save(outputPath);
-});
-app.post("/master", upload.single("track"), (req, res) => {
-    const inputPath = req.file.path;
-    const outputPath = `output/${Date.now()}_mastered.wav`;
-
-    ffmpeg(inputPath)
-        .audioFilters([
-            "highpass=f=35",
-            "lowpass=f=17000",
-            "acompressor=threshold=-20dB:ratio=3:attack=10:release=80",
-            "equalizer=f=1000:t=q:w=1:g=2",
-            "loudnorm=I=-14:TP=-1.5:LRA=11"
-        ])
-        .audioCodec("pcm_s16le")
-        .format("wav")
-        .on("end", () => {
-            res.download(outputPath, () => {
-                fs.unlinkSync(inputPath);
-                fs.unlinkSync(outputPath);
-            });
-        })
-        .on("error", (err) => {
-            console.log(err);
+            console.log("FFMPEG ERROR:", err);
             res.status(500).send("Mastering failed");
         })
         .save(outputPath);
 });
 
-app.listen(process.env.PORT || 3000, () => {
-    console.log("Server running");
-});
+// start server (IMPORTANT for Render)
 const PORT = process.env.PORT || 3000;
 
-const server = app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
-});
-
-server.on("error", (err) => {
-  console.log("Server error:", err);
+app.listen(PORT, () => {
+    console.log("Server running on port " + PORT);
 });
