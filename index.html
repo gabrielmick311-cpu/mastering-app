@@ -1,86 +1,173 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Maestro Mastering</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mastering App</title>
+
   <style>
     body {
-      font-family: Arial;
-      background: #0f0f0f;
+      font-family: Arial, sans-serif;
+      background: #0d0f14;
       color: white;
-      text-align: center;
-      padding: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
     }
 
-    .box {
-      background: #1a1a1a;
-      padding: 30px;
-      border-radius: 15px;
-      width: 350px;
-      margin: auto;
+    .card {
+      width: 420px;
+      background: #151925;
+      padding: 25px;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    .field {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    select, input[type="file"], button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: #222838;
+      color: white;
     }
 
     button {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      background: #4c6fff;
-      color: white;
+      background: #42c7a4;
+      font-weight: bold;
       cursor: pointer;
       margin-top: 10px;
     }
 
-    input {
-      margin-top: 15px;
+    button:hover {
+      background: #35b592;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    .progress {
+      height: 8px;
+      background: #222;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: #42c7a4;
+      transition: 0.2s;
     }
   </style>
 </head>
 
 <body>
+  <div class="card">
+    <h1>Audio Mastering</h1>
 
-  <h1>🎧 Maestro Mastering</h1>
+    <form id="masterForm">
 
-  <div class="box">
-    <p>Upload your track</p>
+      <!-- PRESET -->
+      <div class="field">
+        <label>Preset</label>
+        <select id="preset" name="preset">
+          <option value="spotify">Spotify (Balanced)</option>
+          <option value="rnb">R&B (Smooth)</option>
+          <option value="trap">Trap (Loud)</option>
+          <option value="drill">Drill (Hard)</option>
+        </select>
+      </div>
 
-    <input type="file" id="file" />
-    <br>
+      <!-- FILE -->
+      <div class="field">
+        <label>Audio File</label>
+        <input type="file" id="file" name="file" accept="audio/*" required />
+      </div>
 
-    <button onclick="upload()">Master Track</button>
+      <!-- BUTTON -->
+      <button type="submit">Master Track</button>
 
-    <p id="status"></p>
+      <!-- PROGRESS -->
+      <div class="progress">
+        <div class="bar" id="bar"></div>
+      </div>
+
+      <div id="status">Waiting...</div>
+
+    </form>
   </div>
 
-  <script>
-    async function upload() {
-      const file = document.getElementById("file").files[0];
-      const status = document.getElementById("status");
+<script>
+const form = document.getElementById("masterForm");
+const fileInput = document.getElementById("file");
+const preset = document.getElementById("preset");
+const status = document.getElementById("status");
+const bar = document.getElementById("bar");
 
-      if (!file) {
-        status.innerText = "Select a file first";
-        return;
-      }
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-      status.innerText = "Processing...";
+  const file = fileInput.files[0];
+  if (!file) return alert("Upload a file");
 
-      const form = new FormData();
-      form.append("track", file);
+  const formData = new FormData();
+  formData.append("track", file);
+  formData.append("preset", preset.value);
 
-      const res = await fetch("/master", {
-        method: "POST",
-        body: form
-      });
+  status.textContent = "Processing...";
+  bar.style.width = "20%";
 
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
+  try {
+    const res = await fetch("/master", {
+      method: "POST",
+      body: formData
+    });
 
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "mastered.wav";
-      a.click();
+    bar.style.width = "80%";
 
-      status.innerText = "Done ✔ Downloaded";
-    }
-  </script>
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name.replace(/\.[^/.]+$/, "") + "_mastered.wav";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    bar.style.width = "100%";
+    status.textContent = "Done! Downloaded.";
+
+  } catch (err) {
+    console.log(err);
+    status.textContent = "Error processing file.";
+    bar.style.width = "0%";
+  }
+});
+</script>
 
 </body>
 </html>
